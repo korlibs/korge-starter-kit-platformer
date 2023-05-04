@@ -1,6 +1,7 @@
 # KProject: https://github.com/korlibs/kproject
 dependencies:
 - https://github.com/korlibs/korge-mascots/tree/0.0.1/korge-mascots
+- https://github.com/korlibs/korge-ldtk/tree/0.0.2/korge-ldtk
 #- https://github.com/korlibs/korge-fleks/tree/a37c78f57469de9aaf69537325e41731cb94f8bf/korge-fleks
 #- https://github.com/korlibs/korge-ldtk/tree/f5944022553b6ee70ec4879193e6de1e716e73e1/korge-ldtk
 #- https://github.com/korlibs/korge-compose/tree/0.0.2/korge-compose

@@ -1,7 +1,10 @@
 import korlibs.image.color.Colors
+import korlibs.io.file.std.resourcesVfs
 import korlibs.korge.Korge
 import korlibs.korge.dragonbones.KorgeDbArmatureDisplay
 import korlibs.korge.dragonbones.KorgeDbFactory
+import korlibs.korge.ldtk.view.LDTKView
+import korlibs.korge.ldtk.view.readLDTKWorld
 import korlibs.korge.mascots.KorgeMascotsAnimations
 import korlibs.korge.mascots.buildArmatureDisplayGest
 import korlibs.korge.mascots.loadKorgeMascots
@@ -19,6 +22,8 @@ suspend fun main() = Korge(windowSize = Size(512, 512), backgroundColor = Colors
 
 class MyScene : Scene() {
 	override suspend fun SContainer.sceneMain() {
+		val world = resourcesVfs["ldtk/Typical_2D_platformer_example.ldtk"].readLDTKWorld()
+		this += LDTKView(world)
 		val db = KorgeDbFactory()
 		db.loadKorgeMascots()
 		this += db.buildArmatureDisplayGest()!!.xy(200, 480).play(KorgeMascotsAnimations.IDLE)
