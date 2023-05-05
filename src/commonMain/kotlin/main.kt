@@ -54,7 +54,6 @@ class MyScene : Scene() {
 		val collisions = world.createCollisionMaps()
 		//val mapView = LDTKViewExt(world, showCollisions = true)
 		val mapView = LDTKViewExt(world, showCollisions = false)
-			.filters(IdentityFilter)
 		//println(collisions)
 		val db = KorgeDbFactory()
 		db.loadKorgeMascots()

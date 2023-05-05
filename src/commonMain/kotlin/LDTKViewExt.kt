@@ -6,6 +6,7 @@ import korlibs.image.bitmap.*
 import korlibs.image.color.*
 import korlibs.image.tiles.*
 import korlibs.korge.ldtk.view.*
+import korlibs.korge.view.filter.*
 import korlibs.math.geom.*
 
 private fun IStackedIntArray2.getFirst(pos: PointInt): Int = getFirst(pos.x, pos.y)
@@ -92,8 +93,10 @@ class LDTKViewExt(
                             tileData.push(x, y, TileInfo(tileId, flipX = flipX, flipY = flipY, offsetX = dx, offsetY = dy).data)
                         }
                         if (tilesetExt.tileset != null) {
-                            tileMap(tileData, tilesetExt.tileset!!).alpha(layerDef.displayOpacity)
+                            tileMap(tileData, tilesetExt.tileset!!).alpha(layerDef.displayOpacity)			.filters(IdentityFilter)
+                                .filters(IdentityFilter.Nearest)
                             tileMap(intGrid, intsTileSet).visible(showCollisions)
+                                .filters(IdentityFilter.Nearest)
                         }
                         //tileset!!.
                         //println(intGrid)
