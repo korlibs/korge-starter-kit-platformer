@@ -1,15 +1,42 @@
 import korlibs.datastructure.*
 import korlibs.memory.*
-import korlibs.korge.ldtk.*
 import korlibs.korge.view.*
 import korlibs.korge.view.tiles.*
 import korlibs.image.bitmap.*
 import korlibs.image.color.*
-import korlibs.image.format.*
 import korlibs.image.tiles.*
-import korlibs.io.file.*
 import korlibs.korge.ldtk.view.*
 import korlibs.math.geom.*
+
+private fun IStackedIntArray2.getFirst(pos: PointInt): Int = getFirst(pos.x, pos.y)
+private fun IStackedIntArray2.getLast(pos: PointInt): Int = getLast(pos.x, pos.y)
+
+class LDTKCollisions(val world: LDTKWorld, val stack: IStackedIntArray2) {
+    fun tileToPixel(tilePos: PointInt): PointInt = (tilePos.toFloat() * world.ldtk.defaultGridSize).toInt()
+    fun pixelToTile(pixelPos: PointInt): PointInt = (pixelPos.toFloat() / world.ldtk.defaultGridSize).toInt()
+
+    fun getTile(tilePos: PointInt): Int = stack.getLast(tilePos)
+    fun getPixel(pixelPos: PointInt): Int = getTile(pixelToTile(pixelPos))
+    fun getPixel(pixelPos: Point): Int = getPixel(pixelPos.toInt())
+}
+
+fun LDTKWorld.createCollisionMaps(layerId: String = "Collisions"): LDTKCollisions {
+    val ldtk = this.ldtk
+    val world = SparseChunkedStackedIntArray2()
+    for (level in ldtk.levels) {
+        println("## level: ${level.identifier}")
+        for (layer in (level.layerInstances ?: emptyList()).asReversed()) {
+            if (layer.identifier != layerId) continue
+            val intGrid = IntArray2(layer.cWid, layer.cHei, layer.intGridCSV.copyOf(layer.cWid * layer.cHei))
+            //println("intGrid=$intGrid")
+            println(" - layer=${layer.identifier}, level.worldX=${level.worldX}, level.worldY=${level.worldY}")
+            world.putChunk(
+                StackedIntArray2(intGrid, startX = level.worldX / ldtk.defaultGridSize, startY = level.worldY / ldtk.defaultGridSize)
+            )
+        }
+    }
+    return LDTKCollisions(this, world)
+}
 
 class LDTKViewExt(
     val world: LDTKWorld
@@ -19,16 +46,16 @@ class LDTKViewExt(
         val layersDefsById = world.layersDefsById
         val tilesetDefsById = world.tilesetDefsById
 
-        val colors = Bitmap32(ldtk.defaultGridSize * 16, ldtk.defaultGridSize)
+        val colors = Bitmap32((ldtk.defaultGridSize + 4) * 16, ldtk.defaultGridSize)
         val intsTileSet = TileSet(
-            (0 until 16).map { TileSetTileInfo(it, colors.slice(RectangleInt(ldtk.defaultGridSize * it, 0, ldtk.defaultGridSize, ldtk.defaultGridSize))) }
+            (0 until 16).map { TileSetTileInfo(it, colors.slice(RectangleInt((ldtk.defaultGridSize + 4) * it, 0, ldtk.defaultGridSize, ldtk.defaultGridSize))) }
         )
 
         // @TODO: Do this for each layer, since we might have several IntGrid layers
         for (layer in ldtk.defs.layers) {
             for (value in layer.intGridValues) {
-                colors.fill(Colors[value.color], ldtk.defaultGridSize * value.value)
-                println("COLOR: ${value.value} : ${value.color}")
+                colors.fill(Colors[value.color], (ldtk.defaultGridSize + 4) * value.value)
+                //println("COLOR: ${value.value} : ${value.color}")
             }
         }
         container {
