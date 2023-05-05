@@ -33,12 +33,15 @@ suspend fun main() = Korge(windowSize = Size(512, 512), backgroundColor = Colors
 }
 
 object COLLISIONS {
-	val NONE = 0
+	val OUTSIDE = -1
+	val EMPTY = 0
 	val DIRT = 1
 	val LADDER = 2
 	val STONE = 3
 
-	fun isSolid(type: Int): Boolean = type == DIRT || type == STONE
+	fun isSolid(type: Int): Boolean {
+		return type == DIRT || type == STONE || type == OUTSIDE
+	}
 }
 
 class MyScene : Scene() {
@@ -70,7 +73,17 @@ class MyScene : Scene() {
 		var playerSpeed = Vector2(0, 0)
 		fun tryMoveDelta(delta: Point): Boolean {
 			val newPos = player.pos + delta
-			if (!COLLISIONS.isSolid(collisions.getPixel(newPos))) {
+
+			val collisionPoints = listOf(
+				newPos,
+				newPos + Point(-5, 0),
+				newPos + Point(+5, 0),
+				newPos + Point(-5, -32),
+				newPos + Point(+5, -32),
+			)
+
+
+			if (collisionPoints.all { !COLLISIONS.isSolid(collisions.getPixel(it)) }) {
 				player.pos = newPos
 				camera.setTo(Rectangle((player.pos - Vector2(200, 200)) * SCALE, Size(800, 800)))
 				return true

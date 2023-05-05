@@ -93,7 +93,7 @@ class LDTKViewExt(
                         }
                         if (tilesetExt.tileset != null) {
                             tileMap(tileData, tilesetExt.tileset!!).alpha(layerDef.displayOpacity)
-                            if (showCollisions) tileMap(intGrid, intsTileSet)
+                            tileMap(intGrid, intsTileSet).visible(showCollisions)
                         }
                         //tileset!!.
                         //println(intGrid)
