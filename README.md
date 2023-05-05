@@ -1,3 +1,8 @@
 # Korge Starter Kit Platformer
 
-WIP
+```bash
+./gradlew runJvmAutoreload
+```
+
+![](./screenshots/screenshot.png)
+
