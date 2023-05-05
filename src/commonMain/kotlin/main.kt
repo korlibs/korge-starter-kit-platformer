@@ -1,7 +1,4 @@
-import com.dragonbones.animation.AnimationState
 import com.dragonbones.core.AnimationFadeOutMode
-import korlibs.datastructure.IStackedIntArray2
-import korlibs.datastructure.StackedIntArray2
 import korlibs.event.Key
 import korlibs.image.color.Colors
 import korlibs.io.file.std.resourcesVfs
@@ -9,8 +6,6 @@ import korlibs.korge.Korge
 import korlibs.korge.dragonbones.KorgeDbArmatureDisplay
 import korlibs.korge.dragonbones.KorgeDbFactory
 import korlibs.korge.input.keys
-import korlibs.korge.input.mouse
-import korlibs.korge.ldtk.view.LDTKView
 import korlibs.korge.ldtk.view.readLDTKWorld
 import korlibs.korge.mascots.KorgeMascotsAnimations
 import korlibs.korge.mascots.buildArmatureDisplayGest
@@ -18,9 +13,11 @@ import korlibs.korge.mascots.loadKorgeMascots
 import korlibs.korge.scene.Scene
 import korlibs.korge.scene.sceneContainer
 import korlibs.korge.view.*
-import korlibs.korge.view.filter.IdentityFilter
-import korlibs.korge.view.filter.filters
-import korlibs.math.geom.*
+import korlibs.math.geom.Point
+import korlibs.math.geom.Rectangle
+import korlibs.math.geom.Size
+import korlibs.math.geom.Vector2
+import korlibs.math.isAlmostZero
 import korlibs.time.TimeSpan
 import korlibs.time.milliseconds
 import korlibs.time.seconds
@@ -39,7 +36,7 @@ object COLLISIONS {
 	val LADDER = 2
 	val STONE = 3
 
-	fun isSolid(type: Int): Boolean {
+	fun isSolid(type: Int, direction: Vector2): Boolean {
 		return type == DIRT || type == STONE || type == OUTSIDE
 	}
 }
@@ -61,7 +58,7 @@ class MyScene : Scene() {
 		val player = db.buildArmatureDisplayGest()!!
 			.xy(200, 200)
 			.play(KorgeMascotsAnimations.IDLE)
-			.scale(0.125)
+			.scale(0.080)
 
 		val camera = camera {
 			this += mapView
@@ -77,16 +74,15 @@ class MyScene : Scene() {
 				newPos,
 				newPos + Point(-5, 0),
 				newPos + Point(+5, 0),
-				newPos + Point(-5, -16),
-				newPos + Point(+5, -16),
-				newPos + Point(-5, -32),
-				newPos + Point(+5, -32),
+				newPos + Point(-5, -7),
+				newPos + Point(+5, -7),
+				newPos + Point(-5, -14),
+				newPos + Point(+5, -14),
 			)
 
-
-			if (collisionPoints.all { !COLLISIONS.isSolid(collisions.getPixel(it)) }) {
+			if (collisionPoints.all { !COLLISIONS.isSolid(collisions.getPixel(it), delta) }) {
 				player.pos = newPos
-				camera.setTo(Rectangle((player.pos - Vector2(200, 200)) * SCALE, Size(800, 800)))
+				camera.setTo(Rectangle((player.pos * SCALE - Vector2(200, 200)), Size(400, 400) * SCALE))
 				return true
 			} else {
 				return false
@@ -119,7 +115,11 @@ class MyScene : Scene() {
 				updated(right = true, up = false)
 			}
 			down(Key.SPACE) {
-				playerSpeed += Vector2(0, -4)
+				val isInGround = playerSpeed.y.isAlmostZero()
+				//if (isInGround) {
+				if (true) {
+					playerSpeed += Vector2(0, -4)
+				}
 			}
 		}
 
