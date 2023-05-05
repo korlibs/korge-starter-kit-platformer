@@ -17,12 +17,9 @@ import korlibs.korge.mascots.buildArmatureDisplayGest
 import korlibs.korge.mascots.loadKorgeMascots
 import korlibs.korge.scene.Scene
 import korlibs.korge.scene.sceneContainer
-import korlibs.korge.view.SContainer
-import korlibs.korge.view.addUpdater
+import korlibs.korge.view.*
 import korlibs.korge.view.filter.IdentityFilter
 import korlibs.korge.view.filter.filters
-import korlibs.korge.view.scale
-import korlibs.korge.view.xy
 import korlibs.math.geom.*
 import korlibs.time.TimeSpan
 import korlibs.time.milliseconds
@@ -35,9 +32,19 @@ suspend fun main() = Korge(windowSize = Size(512, 512), backgroundColor = Colors
 	sceneContainer.changeTo({ MyScene() })
 }
 
+object COLLISIONS {
+	val NONE = 0
+	val DIRT = 1
+	val LADDER = 2
+	val STONE = 3
+
+	fun isSolid(type: Int): Boolean = type == DIRT || type == STONE
+}
+
 class MyScene : Scene() {
 	override suspend fun SContainer.sceneMain() {
-		scale(1.5)
+		val SCALE = 1.5
+		scale(SCALE)
 		//xy(0, 200)
 
 		val world = resourcesVfs["ldtk/Typical_2D_platformer_example.ldtk"].readLDTKWorld()
@@ -45,12 +52,6 @@ class MyScene : Scene() {
 		//val mapView = LDTKViewExt(world, showCollisions = true)
 		val mapView = LDTKViewExt(world, showCollisions = false)
 			.filters(IdentityFilter)
-		this += mapView
-		mapView.mouse {
-			onMove {
-				//println("tilePos: ${it.currentPosLocal} : ${collisions.getPixel(it.currentPosLocal.toInt())}")
-			}
-		}
 		//println(collisions)
 		val db = KorgeDbFactory()
 		db.loadKorgeMascots()
@@ -60,14 +61,18 @@ class MyScene : Scene() {
 			.play(KorgeMascotsAnimations.IDLE)
 			.scale(0.125)
 
-		this += player
+		val camera = camera {
+			this += mapView
+			this += player
+		}
 
 		val gravity = Vector2(0, 10.0)
 		var playerSpeed = Vector2(0, 0)
 		fun tryMoveDelta(delta: Point): Boolean {
 			val newPos = player.pos + delta
-			if (collisions.getPixel(newPos) == 0) {
+			if (!COLLISIONS.isSolid(collisions.getPixel(newPos))) {
 				player.pos = newPos
+				camera.setTo(Rectangle((player.pos - Vector2(200, 200)) * SCALE, Size(800, 800)))
 				return true
 			} else {
 				return false

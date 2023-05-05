@@ -24,12 +24,12 @@ fun LDTKWorld.createCollisionMaps(layerId: String = "Collisions"): LDTKCollision
     val ldtk = this.ldtk
     val world = SparseChunkedStackedIntArray2()
     for (level in ldtk.levels) {
-        println("## level: ${level.identifier}")
+        //println("## level: ${level.identifier}")
         for (layer in (level.layerInstances ?: emptyList()).asReversed()) {
             if (layer.identifier != layerId) continue
             val intGrid = IntArray2(layer.cWid, layer.cHei, layer.intGridCSV.copyOf(layer.cWid * layer.cHei))
             //println("intGrid=$intGrid")
-            println(" - layer=${layer.identifier}, level.worldX=${level.worldX}, level.worldY=${level.worldY}")
+            //println(" - layer=${layer.identifier}, level.worldX=${level.worldX}, level.worldY=${level.worldY}")
             world.putChunk(
                 StackedIntArray2(intGrid, startX = level.worldX / ldtk.defaultGridSize, startY = level.worldY / ldtk.defaultGridSize)
             )
