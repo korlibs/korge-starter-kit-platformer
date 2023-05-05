@@ -78,6 +78,8 @@ class MyScene : Scene() {
 				newPos,
 				newPos + Point(-5, 0),
 				newPos + Point(+5, 0),
+				newPos + Point(-5, -16),
+				newPos + Point(+5, -16),
 				newPos + Point(-5, -32),
 				newPos + Point(+5, -32),
 			)
