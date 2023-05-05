@@ -39,7 +39,8 @@ fun LDTKWorld.createCollisionMaps(layerId: String = "Collisions"): LDTKCollision
 }
 
 class LDTKViewExt(
-    val world: LDTKWorld
+    val world: LDTKWorld,
+    val showCollisions: Boolean = false
 ) : Container() {
     init {
         val ldtk = world.ldtk
@@ -92,7 +93,7 @@ class LDTKViewExt(
                         }
                         if (tilesetExt.tileset != null) {
                             tileMap(tileData, tilesetExt.tileset!!).alpha(layerDef.displayOpacity)
-                            tileMap(intGrid, intsTileSet)
+                            if (showCollisions) tileMap(intGrid, intsTileSet)
                         }
                         //tileset!!.
                         //println(intGrid)
