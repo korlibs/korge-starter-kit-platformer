@@ -55,7 +55,8 @@ class MyScene : Scene() {
 		val db = KorgeDbFactory()
 		db.loadKorgeMascots()
 
-		val player = db.buildArmatureDisplayGest()!!
+
+        val player = db.buildArmatureDisplayGest()!!
 			.xy(200, 200)
 			.play(KorgeMascotsAnimations.IDLE)
 			.scale(0.080)
@@ -89,21 +90,38 @@ class MyScene : Scene() {
 			}
 		}
 
+        var playerState = "idle"
+        fun setState(name: String, time: TimeSpan) {
+            if (playerState != name) {
+                playerState = name
+                player.animation.fadeIn(playerState, time)
+            }
+        }
+
+        var jumping = false
+        var moving = false
+
+        fun updateState() {
+            when {
+                jumping -> setState("jump", 0.1.seconds)
+                moving -> setState("walk", 0.1.seconds)
+                else -> setState("idle", 0.3.seconds)
+            }
+        }
+
 		keys {
-			var moving = false
 			fun updated(right: Boolean, up: Boolean) {
 				if (!up) {
 					player.scaleX = player.scaleX.absoluteValue * if (right) +1f else -1f
 					tryMoveDelta(Point(2.0, 0) * (if (right) +1 else -1))
-					if (!moving) player.animation.fadeIn(KorgeMascotsAnimations.WALK, 0.3.seconds)
 					player.speed = 2f
 					moving = true
 				} else {
 					player.speed = 1f
-					if (moving) player.animation.fadeIn(KorgeMascotsAnimations.IDLE, 0.3.seconds)
 					moving = false
 				}
-				//updateTextContainerPos()
+                updateState()
+                //updateTextContainerPos()
 			}
 			up(Key.LEFT, Key.RIGHT) {
 				updated(right = it.key == Key.RIGHT, up = true)
@@ -118,6 +136,10 @@ class MyScene : Scene() {
 				val isInGround = playerSpeed.y.isAlmostZero()
 				//if (isInGround) {
 				if (true) {
+                    if (!jumping) {
+                        jumping = true
+                        updateState()
+                    }
 					playerSpeed += Vector2(0, -4)
 				}
 			}
@@ -127,6 +149,10 @@ class MyScene : Scene() {
 			playerSpeed += gravity * it.seconds
 			if (!tryMoveDelta(playerSpeed)) {
 				playerSpeed = Vector2.ZERO
+                if (jumping) {
+                    jumping = false
+                    updateState()
+                }
 			}
 		}
 	}
