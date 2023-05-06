@@ -63,6 +63,14 @@ class MyScene : Scene() {
 			this += player
 		}
 
+        text(
+            """
+                Use the arrow keys '<-' '->' to move Gest
+                'z' for zoom
+                Space for jumping
+            """.trimIndent()
+        ).xy(8, 8)
+
 		val gravity = Vector2(0, 10.0)
 		var playerSpeed = Vector2(0, 0)
         val mapBounds = mapView.getLocalBounds()
