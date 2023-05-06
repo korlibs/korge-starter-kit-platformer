@@ -1,8 +1,8 @@
 import com.dragonbones.core.AnimationFadeOutMode
 import korlibs.event.Key
 import korlibs.image.color.Colors
-import korlibs.io.file.std.resourcesVfs
-import korlibs.korge.Korge
+import korlibs.io.file.std.*
+import korlibs.korge.*
 import korlibs.korge.dragonbones.KorgeDbArmatureDisplay
 import korlibs.korge.dragonbones.KorgeDbFactory
 import korlibs.korge.input.keys
@@ -13,20 +13,22 @@ import korlibs.korge.mascots.loadKorgeMascots
 import korlibs.korge.scene.Scene
 import korlibs.korge.scene.sceneContainer
 import korlibs.korge.view.*
-import korlibs.math.geom.Point
-import korlibs.math.geom.Rectangle
-import korlibs.math.geom.Size
-import korlibs.math.geom.Vector2
+import korlibs.math.geom.*
+import korlibs.math.interpolation.*
 import korlibs.math.isAlmostZero
 import korlibs.time.TimeSpan
 import korlibs.time.milliseconds
 import korlibs.time.seconds
 import kotlin.math.absoluteValue
 
-suspend fun main() = Korge(windowSize = Size(512, 512), backgroundColor = Colors["#2b2b2b"]) {
-	val sceneContainer = sceneContainer()
+suspend fun main() = Korge(
+    windowSize = Size(512, 512),
+    backgroundColor = Colors["#2b2b2b"],
+    displayMode = KorgeDisplayMode(ScaleMode.SHOW_ALL, Anchor.TOP_LEFT, clipBorders = false),
+) {
+    val sceneContainer = sceneContainer()
 
-	sceneContainer.changeTo({ MyScene() })
+    sceneContainer.changeTo({ MyScene() })
 }
 
 object COLLISIONS {
@@ -43,18 +45,13 @@ object COLLISIONS {
 
 class MyScene : Scene() {
 	override suspend fun SContainer.sceneMain() {
-		val SCALE = 1.5
-		scale(SCALE)
-		//xy(0, 200)
-
 		val world = resourcesVfs["ldtk/Typical_2D_platformer_example.ldtk"].readLDTKWorld()
 		val collisions = world.createCollisionMaps()
 		//val mapView = LDTKViewExt(world, showCollisions = true)
 		val mapView = LDTKViewExt(world, showCollisions = false)
 		//println(collisions)
 		val db = KorgeDbFactory()
-		db.loadKorgeMascots()
-
+        db.loadKorgeMascots()
 
         val player = db.buildArmatureDisplayGest()!!
 			.xy(200, 200)
@@ -68,6 +65,10 @@ class MyScene : Scene() {
 
 		val gravity = Vector2(0, 10.0)
 		var playerSpeed = Vector2(0, 0)
+        val mapBounds = mapView.getLocalBounds()
+
+        var currentRect = Rectangle(0, 0, 1024, 1024)
+
 		fun tryMoveDelta(delta: Point): Boolean {
 			val newPos = player.pos + delta
 
@@ -81,13 +82,11 @@ class MyScene : Scene() {
 				newPos + Point(+5, -14),
 			)
 
-			if (collisionPoints.all { !COLLISIONS.isSolid(collisions.getPixel(it), delta) }) {
+            var set = collisionPoints.all { !COLLISIONS.isSolid(collisions.getPixel(it), delta) }
+			if (set) {
 				player.pos = newPos
-				camera.setTo(Rectangle((player.pos * SCALE - Vector2(200, 200)), Size(400, 400) * SCALE))
-				return true
-			} else {
-				return false
 			}
+            return set
 		}
 
         var playerState = "idle"
@@ -155,6 +154,25 @@ class MyScene : Scene() {
                 }
 			}
 		}
+
+        currentRect = Rectangle.getRectWithAnchorClamped(player.pos, Size(32, 32), Anchor.CENTER, mapBounds)
+
+        var zoom = Size(256, 256)
+
+        keys {
+            down(Key.Z) {
+                val zoomC = zoom.avgComponent()
+                val zoomC2 = if (zoomC >= 1024f) 128f else zoomC * 2
+                zoom = Size(zoomC2, zoomC2)
+            }
+        }
+
+        addUpdater {
+            val newRect = Rectangle.getRectWithAnchorClamped(player.pos, zoom, Anchor.CENTER, mapBounds)
+            currentRect = (0.05 * 0.5).toRatio().interpolate(currentRect, newRect)
+            //camera.setTo(currentRect.rounded())
+            camera.setTo(currentRect)
+        }
 	}
 }
 
@@ -169,4 +187,33 @@ fun KorgeDbArmatureDisplay.fadeIn(
 ): KorgeDbArmatureDisplay? {
 	animation.fadeIn(animationName, fadeInTime, playTimes, layer, group, fadeOutMode)
 	return this
+}
+
+fun Rectangle.Companion.interpolated(a: Rectangle, b: Rectangle, ratio: Ratio): Rectangle = Rectangle.fromBounds(
+    ratio.interpolate(a.left, b.left),
+    ratio.interpolate(a.top, b.top),
+    ratio.interpolate(a.right, b.right),
+    ratio.interpolate(a.bottom, b.bottom),
+)
+
+fun Ratio.interpolate(l: Rectangle, r: Rectangle): Rectangle = Rectangle.interpolated(l, r, this)
+
+fun Rectangle.Companion.getRectWithAnchor(pos: Point, size: Size, anchor: Anchor = Anchor.CENTER): Rectangle {
+    val topLeft = pos - size * anchor
+    return Rectangle(topLeft, size)
+}
+
+fun Rectangle.Companion.getRectWithAnchorClamped(pos: Point, size: Size, anchor: Anchor = Anchor.CENTER, clampBounds: Rectangle, keepProportions: Boolean = true): Rectangle {
+    var rect = getRectWithAnchor(pos, size, anchor)
+    if (rect.right > clampBounds.right) rect = rect.copy(x = rect.x - (rect.right - clampBounds.right))
+    if (rect.bottom > clampBounds.bottom) rect = rect.copy(y = rect.y - (rect.bottom - clampBounds.bottom))
+    if (rect.left < clampBounds.left) rect = rect.copy(x = rect.x - (rect.left - clampBounds.left))
+    if (rect.top < clampBounds.top) rect = rect.copy(y = rect.y - (rect.top - clampBounds.top))
+
+
+    if (rect.right > clampBounds.right || rect.bottom > clampBounds.bottom) {
+        return rect.applyScaleMode(clampBounds, ScaleMode.SHOW_ALL, Anchor.TOP_LEFT)
+    } else {
+        return rect
+    }
 }
