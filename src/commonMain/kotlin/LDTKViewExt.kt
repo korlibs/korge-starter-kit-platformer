@@ -13,12 +13,12 @@ private fun IStackedIntArray2.getFirst(pos: PointInt): Int = getFirst(pos.x, pos
 private fun IStackedIntArray2.getLast(pos: PointInt): Int = getLast(pos.x, pos.y)
 
 class LDTKCollisions(val world: LDTKWorld, val stack: IStackedIntArray2) {
-    fun tileToPixel(tilePos: PointInt): PointInt = (tilePos.toFloat() * world.ldtk.defaultGridSize).toInt()
-    fun pixelToTile(pixelPos: PointInt): PointInt = (pixelPos.toFloat() / world.ldtk.defaultGridSize).toInt()
+    fun tileToPixel(tilePos: PointInt): PointInt = (tilePos.toFloat() * world.ldtk.defaultGridSize).toIntFloor()
+    fun pixelToTile(pixelPos: PointInt): PointInt = (pixelPos.toFloat() / world.ldtk.defaultGridSize).toIntFloor()
 
     fun getTile(tilePos: PointInt): Int = stack.getLast(tilePos)
     fun getPixel(pixelPos: PointInt): Int = getTile(pixelToTile(pixelPos))
-    fun getPixel(pixelPos: Point): Int = getPixel(pixelPos.toInt())
+    fun getPixel(pixelPos: Point): Int = getPixel(pixelPos.toIntFloor())
 }
 
 fun LDTKWorld.createCollisionMaps(layerId: String = "Collisions"): LDTKCollisions {
@@ -93,10 +93,14 @@ class LDTKViewExt(
                             tileData.push(x, y, TileInfo(tileId, flipX = flipX, flipY = flipY, offsetX = dx, offsetY = dy).data)
                         }
                         if (tilesetExt.tileset != null) {
-                            tileMap(tileData, tilesetExt.tileset!!).alpha(layerDef.displayOpacity)			.filters(IdentityFilter)
+                            tileMap(tileData, tilesetExt.tileset!!)
+                                .alpha(layerDef.displayOpacity)
                                 .filters(IdentityFilter.Nearest)
-                            tileMap(intGrid, intsTileSet).visible(showCollisions)
+                                //.also { it.overdrawTiles = 1 }
+                            tileMap(intGrid, intsTileSet)
+                                .visible(showCollisions)
                                 .filters(IdentityFilter.Nearest)
+                                //.also { it.overdrawTiles = 1 }
                         }
                         //tileset!!.
                         //println(intGrid)
