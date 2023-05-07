@@ -147,13 +147,14 @@ class MyScene : Scene() {
                         jumping = true
                         updateState()
                     }
-					playerSpeed += Vector2(0, -4)
+					playerSpeed += Vector2(0, -5.5)
 				}
 			}
 		}
 
-		addUpdater {
-			playerSpeed += gravity * it.seconds
+        val STEP = 1.seconds / 60
+		addFixedUpdater(STEP) {
+            playerSpeed += gravity * STEP.seconds
 			if (!tryMoveDelta(playerSpeed)) {
 				playerSpeed = Vector2.ZERO
                 if (jumping) {
