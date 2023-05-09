@@ -5,7 +5,7 @@ import korlibs.io.file.std.*
 import korlibs.korge.*
 import korlibs.korge.dragonbones.KorgeDbArmatureDisplay
 import korlibs.korge.dragonbones.KorgeDbFactory
-import korlibs.korge.input.keys
+import korlibs.korge.input.*
 import korlibs.korge.ldtk.view.readLDTKWorld
 import korlibs.korge.mascots.KorgeMascotsAnimations
 import korlibs.korge.mascots.buildArmatureDisplayGest
@@ -44,7 +44,16 @@ object COLLISIONS {
 }
 
 class MyScene : Scene() {
-	override suspend fun SContainer.sceneMain() {
+    @KeepOnReload
+    var currentPlayerPos = Point(200, 200)
+
+    @KeepOnReload
+    var initZoom = Size(32, 32)
+
+    @KeepOnReload
+    var zoom = Size(256, 256)
+
+    override suspend fun SContainer.sceneMain() {
 		val world = resourcesVfs["ldtk/Typical_2D_platformer_example.ldtk"].readLDTKWorld()
 		val collisions = world.createCollisionMaps()
 		//val mapView = LDTKViewExt(world, showCollisions = true)
@@ -54,7 +63,7 @@ class MyScene : Scene() {
         db.loadKorgeMascots()
 
         val player = db.buildArmatureDisplayGest()!!
-			.xy(200, 200)
+			.xy(currentPlayerPos)
 			.play(KorgeMascotsAnimations.IDLE)
 			.scale(0.080)
 
@@ -68,8 +77,17 @@ class MyScene : Scene() {
                 Use the arrow keys '<-' '->' to move Gest
                 'z' for zoom
                 Space for jumping
+                startPos = $currentPlayerPos
             """.trimIndent()
         ).xy(8, 8)
+
+        val textCoords = text("-").xy(8, 200)
+
+        mapView.mouse {
+            move {
+                textCoords.text = collisions.pixelToTile(it.currentPosLocal.toInt()).toString()
+            }
+        }
 
 		val gravity = Vector2(0, 10.0)
 		var playerSpeed = Vector2(0, 0)
@@ -93,6 +111,7 @@ class MyScene : Scene() {
             var set = collisionPoints.all { !COLLISIONS.isSolid(collisions.getPixel(it), delta) }
 			if (set) {
 				player.pos = newPos
+                currentPlayerPos = newPos
 			}
             return set
 		}
@@ -164,9 +183,7 @@ class MyScene : Scene() {
 			}
 		}
 
-        currentRect = Rectangle.getRectWithAnchorClamped(player.pos, Size(32, 32), Anchor.CENTER, mapBounds)
-
-        var zoom = Size(256, 256)
+        currentRect = Rectangle.getRectWithAnchorClamped(player.pos, initZoom, Anchor.CENTER, mapBounds)
 
         keys {
             down(Key.Z) {
@@ -181,6 +198,7 @@ class MyScene : Scene() {
             currentRect = (0.05 * 0.5).toRatio().interpolate(currentRect, newRect)
             //camera.setTo(currentRect.rounded())
             camera.setTo(currentRect)
+            initZoom = zoom
         }
 	}
 }
@@ -221,7 +239,7 @@ fun Rectangle.Companion.getRectWithAnchorClamped(pos: Point, size: Size, anchor:
 
 
     if (rect.right > clampBounds.right || rect.bottom > clampBounds.bottom) {
-        return rect.applyScaleMode(clampBounds, ScaleMode.SHOW_ALL, Anchor.TOP_LEFT)
+        return rect.applyScaleMode(clampBounds, ScaleMode.COVER, Anchor.TOP_LEFT)
     } else {
         return rect
     }
