@@ -196,7 +196,7 @@ class MyScene : Scene() {
 
         virtualController.down(GameButton.START) {
             val zoomC = zoom
-            val zoomC2 = if (zoomC >= 512f) 128f else zoomC * 2
+            val zoomC2 = if (zoomC >= 1024f) 128f else zoomC * 2
             zoom = zoomC2
         }
 
