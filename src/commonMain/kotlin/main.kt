@@ -182,7 +182,7 @@ class MyScene : Scene() {
                 }
             }
             changed(GameButton.LX) {
-                if (it.new.absoluteValue < 0.01f) {
+                if (it.new.normalizeAlmostZero(.075f) == 0f) {
                     updated(right = it.new > 0f, up = true, scale = 1f)
                 }
             }
@@ -204,12 +204,11 @@ class MyScene : Scene() {
         addFixedUpdater(FREQ) {
             // Move character
             run {
-                val lx = virtualController.lx
+                val lx = virtualController.lx.normalizeAlmostZero(.075f)
                 when {
                     lx < 0f -> {
                         updated(right = false, up = false, scale = lx.absoluteValue)
                     }
-
                     lx > 0f -> {
                         updated(right = true, up = false, scale = lx.absoluteValue)
                     }
@@ -243,6 +242,8 @@ class MyScene : Scene() {
         }
     }
 }
+
+fun Float.normalizeAlmostZero(epsilon: Float) = if (this.absoluteValue < epsilon) 0f else this
 
 fun KorgeDbArmatureDisplay.play(animationName: String): KorgeDbArmatureDisplay {
     animation.play(animationName)
