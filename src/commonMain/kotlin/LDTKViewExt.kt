@@ -99,11 +99,11 @@ class LDTKViewExt(
                             tileMap(tileData, tilesetExt.tileset!!)
                                 .alpha(layerDef.displayOpacity)
                                 .filters(IdentityFilter.Nearest)
-                                //.also { it.overdrawTiles = 1 }
+                                .also { it.overdrawTiles = 1 }
                             tileMap(intGrid, intsTileSet)
                                 .visible(showCollisions)
                                 .filters(IdentityFilter.Nearest)
-                                //.also { it.overdrawTiles = 1 }
+                                .also { it.overdrawTiles = 1 }
                         }
                         //tileset!!.
                         //println(intGrid)
