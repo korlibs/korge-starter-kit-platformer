@@ -86,11 +86,13 @@ class MyScene : Scene() {
             }
         }
 
+        val buttonRadius = 140f
         val virtualController = virtualController(
             buttons = listOf(
                 VirtualButtonConfig.SOUTH,
-                VirtualButtonConfig(Key.Z, GameButton.START, Anchor.BOTTOM_RIGHT, offset = Point(0, -92f * 1.5f))
+                VirtualButtonConfig(Key.Z, GameButton.START, Anchor.BOTTOM_RIGHT, offset = Point(0, -buttonRadius * 1.5f))
             ),
+            buttonRadius = buttonRadius
         ).also { it.container.alpha(0.5f) }
 
         val gravity = Vector2(0, 10.0)
