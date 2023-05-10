@@ -52,8 +52,10 @@ class MyScene : Scene() {
     var zoom = 256f
 
     override suspend fun SContainer.sceneMain() {
+        var immediateSetCamera = false
         onStageResized { width, height ->
             size = Size(views.actualVirtualWidth, views.actualVirtualHeight)
+            immediateSetCamera = true
         }
         val world = resourcesVfs["ldtk/Typical_2D_platformer_example.ldtk"].readLDTKWorldExt()
         val collisions = world.createCollisionMaps()
@@ -103,8 +105,7 @@ class MyScene : Scene() {
         var playerSpeed = Vector2(0, 0)
         val mapBounds = mapView.getLocalBounds()
 
-        //var currentRect = Rectangle(0, 0, 1024, 1024)
-        var currentCameraInfo = CameraInfo(Point.ZERO, 100f, Anchor.TOP_LEFT)
+        var currentRect = Rectangle(0, 0, 1024, 1024)
 
         fun tryMoveDelta(delta: Point): Boolean {
             val newPos = player.pos + delta
@@ -183,8 +184,7 @@ class MyScene : Scene() {
             return Size(zoom * (width / height), zoom)
         }
 
-        //currentRect = Rectangle.getRectWithAnchorClamped(player.pos, createSize(initZoom), Anchor.CENTER, mapBounds)
-        currentCameraInfo = CameraInfo(player.pos, initZoom, Anchor.CENTER)
+        currentRect = Rectangle.getRectWithAnchorClamped(player.pos, createSize(initZoom), Anchor.CENTER, mapBounds)
 
         virtualController.down(GameButton.START) {
             val zoomC = zoom
@@ -196,7 +196,7 @@ class MyScene : Scene() {
         addFixedUpdater(FREQ) {
             // Move character
             run {
-                val lx = virtualController.lx.withoutDeadRange()
+                val lx = virtualController.lx
                 when {
                     lx < 0f -> {
                         updated(right = false, up = false, scale = lx.absoluteValue)
@@ -222,32 +222,19 @@ class MyScene : Scene() {
 
             // Update camera
             run {
-                val newCameraInfo = CameraInfo(player.pos, zoom, Anchor.CENTER)
-                currentCameraInfo = (0.05 * 0.5).toRatio().interpolate(currentCameraInfo, newCameraInfo)
+                val newRect = Rectangle.getRectWithAnchorClamped(player.pos, createSize(zoom), Anchor.CENTER, mapBounds)
+                if (immediateSetCamera) {
+                    immediateSetCamera = false
+                    currentRect = newRect
+                }
+                currentRect = (0.05 * 0.5).toRatio().interpolate(currentRect, newRect)
                 //camera.setTo(currentRect.rounded())
-                camera.setTo(Rectangle.getRectWithAnchorClamped(player.pos, createSize(zoom), Anchor.CENTER, mapBounds))
+                camera.setTo(currentRect)
                 initZoom = zoom
             }
         }
     }
 }
-
-data class CameraInfo(
-    val pos: Point,
-    val zoom: Float,
-    val anchor: Anchor,
-) : Interpolable<CameraInfo> {
-    override fun interpolateWith(ratio: Ratio, other: CameraInfo): CameraInfo {
-        return CameraInfo(
-            ratio.interpolate(pos, other.pos),
-            ratio.interpolate(zoom, other.zoom),
-            ratio.interpolate(anchor, other.anchor),
-        )
-    }
-}
-
-// @TODO: Required for JS
-fun Float.withoutDeadRange(): Float = if (this.absoluteValue >= 0.15f) this else 0f
 
 fun KorgeDbArmatureDisplay.play(animationName: String): KorgeDbArmatureDisplay {
     animation.play(animationName)
@@ -284,9 +271,9 @@ fun Rectangle.Companion.getRectWithAnchorClamped(pos: Point, size: Size, anchor:
     if (rect.top < clampBounds.top) rect = rect.copy(y = rect.y - (rect.top - clampBounds.top))
 
 
-    //if (rect.right > clampBounds.right || rect.bottom > clampBounds.bottom) {
-    //    return rect.applyScaleMode(clampBounds, ScaleMode.SHOW_ALL, Anchor.TOP_LEFT)
-    //} else {
+    if (rect.right > clampBounds.right || rect.bottom > clampBounds.bottom) {
+        return rect.applyScaleMode(clampBounds, ScaleMode.COVER, Anchor.TOP_LEFT)
+    } else {
         return rect
-    //}
+    }
 }
