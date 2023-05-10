@@ -95,13 +95,8 @@ class MyScene : Scene() {
             """.trimIndent()
         ).xy(8, 8)
 
-        val textCoords = text("-").xy(8, 200)
-
-        mapView.mouse {
-            move {
-                textCoords.text = collisions.pixelToTile(it.currentPosLocal.toInt()).toString()
-            }
-        }
+        //val textCoords = text("-").xy(8, 200)
+        //mapView.mouse { move { textCoords.text = collisions.pixelToTile(it.currentPosLocal.toInt()).toString() } }
 
         val buttonRadius = 110f
         val virtualController = virtualController(
