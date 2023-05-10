@@ -132,7 +132,7 @@ suspend fun VfsFile.readLDTKWorldExt(): LDTKWorld {
     val json = file.readString()
     val ldtk = LDTKJson.load(json)
     val tilesetDefsById: Map<Int, ExtTileset> = ldtk.defs.tilesets.associate { def ->
-        val bitmap = def.relPath?.let { file.parent[it].readBitmap() }
+        val bitmap = def.relPath?.let { file.parent[it].readBitmap().toBMP32() }
         val tileSet = bitmap?.let { TileSet(bitmap.slice(), def.tileGridSize, def.tileGridSize).extrude(border = 2) }
         def.uid to ExtTileset(def, tileSet)
     }
