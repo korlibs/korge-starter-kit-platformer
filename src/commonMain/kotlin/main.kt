@@ -170,29 +170,6 @@ class MyScene : Scene() {
                     updated(right = it.new > 0f, up = true, scale = 1f)
                 }
             }
-            addUpdater(60.hz) {
-                val lx = virtualController.lx
-                when {
-                    lx < 0f -> {
-                        updated(right = false, up = false, scale = lx.absoluteValue)
-                    }
-                    lx > 0f -> {
-                        updated(right = true, up = false, scale = lx.absoluteValue)
-                    }
-                }
-            }
-        }
-
-        val STEP = 1.seconds / 60
-        addFixedUpdater(STEP) {
-            playerSpeed += gravity * STEP.seconds
-            if (!tryMoveDelta(playerSpeed)) {
-                playerSpeed = Vector2.ZERO
-                if (jumping) {
-                    jumping = false
-                    updateState()
-                }
-            }
         }
 
         currentRect = Rectangle.getRectWithAnchorClamped(player.pos, initZoom, Anchor.CENTER, mapBounds)
@@ -203,12 +180,42 @@ class MyScene : Scene() {
             zoom = Size(zoomC2, zoomC2)
         }
 
-        addUpdater {
-            val newRect = Rectangle.getRectWithAnchorClamped(player.pos, zoom, Anchor.CENTER, mapBounds)
-            currentRect = (0.05 * 0.5).toRatio().interpolate(currentRect, newRect)
-            //camera.setTo(currentRect.rounded())
-            camera.setTo(currentRect)
-            initZoom = zoom
+        val FREQ = 60.hz
+        addFixedUpdater(FREQ) {
+            // Move character
+            run {
+                val lx = virtualController.lx
+                when {
+                    lx < 0f -> {
+                        updated(right = false, up = false, scale = lx.absoluteValue)
+                    }
+
+                    lx > 0f -> {
+                        updated(right = true, up = false, scale = lx.absoluteValue)
+                    }
+                }
+            }
+
+            // Apply gravity
+            run {
+                playerSpeed += gravity * FREQ.timeSpan.seconds
+                if (!tryMoveDelta(playerSpeed)) {
+                    playerSpeed = Vector2.ZERO
+                    if (jumping) {
+                        jumping = false
+                        updateState()
+                    }
+                }
+            }
+
+            // Update camera
+            run {
+                val newRect = Rectangle.getRectWithAnchorClamped(player.pos, zoom, Anchor.CENTER, mapBounds)
+                currentRect = (0.05 * 0.5).toRatio().interpolate(currentRect, newRect)
+                //camera.setTo(currentRect.rounded())
+                camera.setTo(currentRect)
+                initZoom = zoom
+            }
         }
     }
 }
