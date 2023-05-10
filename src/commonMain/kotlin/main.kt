@@ -17,7 +17,8 @@ import korlibs.time.*
 import kotlin.math.*
 
 suspend fun main() = Korge(
-    windowSize = Size(1280, 720),
+    //windowSize = Size(1280, 720),
+    windowSize = Size(512, 512),
     backgroundColor = Colors["#2b2b2b"],
     displayMode = KorgeDisplayMode(ScaleMode.SHOW_ALL, Anchor.TOP_LEFT, clipBorders = false),
 ) {
@@ -51,6 +52,11 @@ class MyScene : Scene() {
     var zoom = 256f
 
     override suspend fun SContainer.sceneMain() {
+        var immediateSetCamera = false
+        onStageResized { width, height ->
+            size = Size(views.actualVirtualWidth, views.actualVirtualHeight)
+            immediateSetCamera = true
+        }
         val world = resourcesVfs["ldtk/Typical_2D_platformer_example.ldtk"].readLDTKWorldExt()
         val collisions = world.createCollisionMaps()
         //val mapView = LDTKViewExt(world, showCollisions = true)
@@ -86,7 +92,7 @@ class MyScene : Scene() {
             }
         }
 
-        val buttonRadius = 140f
+        val buttonRadius = 110f
         val virtualController = virtualController(
             buttons = listOf(
                 VirtualButtonConfig.SOUTH,
@@ -217,6 +223,10 @@ class MyScene : Scene() {
             // Update camera
             run {
                 val newRect = Rectangle.getRectWithAnchorClamped(player.pos, createSize(zoom), Anchor.CENTER, mapBounds)
+                if (immediateSetCamera) {
+                    immediateSetCamera = false
+                    currentRect = newRect
+                }
                 currentRect = (0.05 * 0.5).toRatio().interpolate(currentRect, newRect)
                 //camera.setTo(currentRect.rounded())
                 camera.setTo(currentRect)
