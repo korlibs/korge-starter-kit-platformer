@@ -1,25 +1,20 @@
-import com.dragonbones.core.AnimationFadeOutMode
-import korlibs.event.Key
-import korlibs.image.color.Colors
+import com.dragonbones.core.*
+import korlibs.event.*
+import korlibs.image.color.*
 import korlibs.io.file.std.*
 import korlibs.korge.*
-import korlibs.korge.dragonbones.KorgeDbArmatureDisplay
-import korlibs.korge.dragonbones.KorgeDbFactory
+import korlibs.korge.dragonbones.*
 import korlibs.korge.input.*
-import korlibs.korge.ldtk.view.readLDTKWorld
-import korlibs.korge.mascots.KorgeMascotsAnimations
-import korlibs.korge.mascots.buildArmatureDisplayGest
-import korlibs.korge.mascots.loadKorgeMascots
-import korlibs.korge.scene.Scene
-import korlibs.korge.scene.sceneContainer
+import korlibs.korge.ldtk.view.*
+import korlibs.korge.mascots.*
+import korlibs.korge.scene.*
 import korlibs.korge.view.*
+import korlibs.korge.virtualcontroller.*
+import korlibs.math.*
 import korlibs.math.geom.*
 import korlibs.math.interpolation.*
-import korlibs.math.isAlmostZero
-import korlibs.time.TimeSpan
-import korlibs.time.milliseconds
-import korlibs.time.seconds
-import kotlin.math.absoluteValue
+import korlibs.time.*
+import kotlin.math.*
 
 suspend fun main() = Korge(
     windowSize = Size(512, 512),
@@ -28,19 +23,21 @@ suspend fun main() = Korge(
 ) {
     val sceneContainer = sceneContainer()
 
+
+
     sceneContainer.changeTo({ MyScene() })
 }
 
 object COLLISIONS {
-	val OUTSIDE = -1
-	val EMPTY = 0
-	val DIRT = 1
-	val LADDER = 2
-	val STONE = 3
+    val OUTSIDE = -1
+    val EMPTY = 0
+    val DIRT = 1
+    val LADDER = 2
+    val STONE = 3
 
-	fun isSolid(type: Int, direction: Vector2): Boolean {
-		return type == DIRT || type == STONE || type == OUTSIDE
-	}
+    fun isSolid(type: Int, direction: Vector2): Boolean {
+        return type == DIRT || type == STONE || type == OUTSIDE
+    }
 }
 
 class MyScene : Scene() {
@@ -54,23 +51,23 @@ class MyScene : Scene() {
     var zoom = Size(256, 256)
 
     override suspend fun SContainer.sceneMain() {
-		val world = resourcesVfs["ldtk/Typical_2D_platformer_example.ldtk"].readLDTKWorld()
-		val collisions = world.createCollisionMaps()
-		//val mapView = LDTKViewExt(world, showCollisions = true)
-		val mapView = LDTKViewExt(world, showCollisions = false)
-		//println(collisions)
-		val db = KorgeDbFactory()
+        val world = resourcesVfs["ldtk/Typical_2D_platformer_example.ldtk"].readLDTKWorld()
+        val collisions = world.createCollisionMaps()
+        //val mapView = LDTKViewExt(world, showCollisions = true)
+        val mapView = LDTKViewExt(world, showCollisions = false)
+        //println(collisions)
+        val db = KorgeDbFactory()
         db.loadKorgeMascots()
 
         val player = db.buildArmatureDisplayGest()!!
-			.xy(currentPlayerPos)
-			.play(KorgeMascotsAnimations.IDLE)
-			.scale(0.080)
+            .xy(currentPlayerPos)
+            .play(KorgeMascotsAnimations.IDLE)
+            .scale(0.080)
 
-		val camera = camera {
-			this += mapView
-			this += player
-		}
+        val camera = camera {
+            this += mapView
+            this += player
+        }
 
         text(
             """
@@ -89,32 +86,39 @@ class MyScene : Scene() {
             }
         }
 
-		val gravity = Vector2(0, 10.0)
-		var playerSpeed = Vector2(0, 0)
+        val virtualController = virtualController(
+            buttons = listOf(
+                VirtualButtonConfig.SOUTH,
+                VirtualButtonConfig(Key.Z, GameButton.START, Anchor.BOTTOM_RIGHT, offset = Point(0, -92f * 1.5f))
+            ),
+        ).also { it.container.alpha(0.5f) }
+
+        val gravity = Vector2(0, 10.0)
+        var playerSpeed = Vector2(0, 0)
         val mapBounds = mapView.getLocalBounds()
 
         var currentRect = Rectangle(0, 0, 1024, 1024)
 
-		fun tryMoveDelta(delta: Point): Boolean {
-			val newPos = player.pos + delta
+        fun tryMoveDelta(delta: Point): Boolean {
+            val newPos = player.pos + delta
 
-			val collisionPoints = listOf(
-				newPos,
-				newPos + Point(-5, 0),
-				newPos + Point(+5, 0),
-				newPos + Point(-5, -7),
-				newPos + Point(+5, -7),
-				newPos + Point(-5, -14),
-				newPos + Point(+5, -14),
-			)
+            val collisionPoints = listOf(
+                newPos,
+                newPos + Point(-5, 0),
+                newPos + Point(+5, 0),
+                newPos + Point(-5, -7),
+                newPos + Point(+5, -7),
+                newPos + Point(-5, -14),
+                newPos + Point(+5, -14),
+            )
 
             var set = collisionPoints.all { !COLLISIONS.isSolid(collisions.getPixel(it), delta) }
-			if (set) {
-				player.pos = newPos
+            if (set) {
+                player.pos = newPos
                 currentPlayerPos = newPos
-			}
+            }
             return set
-		}
+        }
 
         var playerState = "idle"
         fun setState(name: String, time: TimeSpan) {
@@ -135,62 +139,68 @@ class MyScene : Scene() {
             }
         }
 
-		keys {
-			fun updated(right: Boolean, up: Boolean) {
-				if (!up) {
-					player.scaleX = player.scaleX.absoluteValue * if (right) +1f else -1f
-					tryMoveDelta(Point(2.0, 0) * (if (right) +1 else -1))
-					player.speed = 2f
-					moving = true
-				} else {
-					player.speed = 1f
-					moving = false
-				}
-                updateState()
-                //updateTextContainerPos()
-			}
-			up(Key.LEFT, Key.RIGHT) {
-				updated(right = it.key == Key.RIGHT, up = true)
-			}
-			downFrame(Key.LEFT, dt = 16.milliseconds) {
-				updated(right = false, up = false)
-			}
-			downFrame(Key.RIGHT, dt = 16.milliseconds) {
-				updated(right = true, up = false)
-			}
-			down(Key.SPACE) {
-				val isInGround = playerSpeed.y.isAlmostZero()
-				//if (isInGround) {
-				if (true) {
+        fun updated(right: Boolean, up: Boolean, scale: Float = 1f) {
+            if (!up) {
+                player.scaleX = player.scaleX.absoluteValue * if (right) +1f else -1f
+                tryMoveDelta(Point(2.0, 0) * (if (right) +1 else -1) * scale)
+                player.speed = 2f * scale
+                moving = true
+            } else {
+                player.speed = 1f
+                moving = false
+            }
+            updateState()
+            //updateTextContainerPos()
+        }
+
+        virtualController.apply {
+            down(GameButton.BUTTON_SOUTH) {
+                val isInGround = playerSpeed.y.isAlmostZero()
+                //if (isInGround) {
+                if (true) {
                     if (!jumping) {
                         jumping = true
                         updateState()
                     }
-					playerSpeed += Vector2(0, -5.5)
-				}
-			}
-		}
+                    playerSpeed += Vector2(0, -5.5)
+                }
+            }
+            changed(GameButton.LX) {
+                if (it.new.absoluteValue < 0.01f) {
+                    updated(right = it.new > 0f, up = true, scale = 1f)
+                }
+            }
+            addUpdater(60.hz) {
+                val lx = virtualController.lx
+                when {
+                    lx < 0f -> {
+                        updated(right = false, up = false, scale = lx.absoluteValue)
+                    }
+                    lx > 0f -> {
+                        updated(right = true, up = false, scale = lx.absoluteValue)
+                    }
+                }
+            }
+        }
 
         val STEP = 1.seconds / 60
-		addFixedUpdater(STEP) {
+        addFixedUpdater(STEP) {
             playerSpeed += gravity * STEP.seconds
-			if (!tryMoveDelta(playerSpeed)) {
-				playerSpeed = Vector2.ZERO
+            if (!tryMoveDelta(playerSpeed)) {
+                playerSpeed = Vector2.ZERO
                 if (jumping) {
                     jumping = false
                     updateState()
                 }
-			}
-		}
+            }
+        }
 
         currentRect = Rectangle.getRectWithAnchorClamped(player.pos, initZoom, Anchor.CENTER, mapBounds)
 
-        keys {
-            down(Key.Z) {
-                val zoomC = zoom.avgComponent()
-                val zoomC2 = if (zoomC >= 1024f) 128f else zoomC * 2
-                zoom = Size(zoomC2, zoomC2)
-            }
+        virtualController.down(GameButton.START) {
+            val zoomC = zoom.avgComponent()
+            val zoomC2 = if (zoomC >= 1024f) 128f else zoomC * 2
+            zoom = Size(zoomC2, zoomC2)
         }
 
         addUpdater {
@@ -200,20 +210,20 @@ class MyScene : Scene() {
             camera.setTo(currentRect)
             initZoom = zoom
         }
-	}
+    }
 }
 
 fun KorgeDbArmatureDisplay.play(animationName: String): KorgeDbArmatureDisplay {
-	animation.play(animationName)
-	return this
+    animation.play(animationName)
+    return this
 }
 
 fun KorgeDbArmatureDisplay.fadeIn(
-	animationName: String, fadeInTime: TimeSpan, playTimes: Int = -1,
-	layer: Int = 0, group: String? = null, fadeOutMode: AnimationFadeOutMode = AnimationFadeOutMode.SameLayerAndGroup
+    animationName: String, fadeInTime: TimeSpan, playTimes: Int = -1,
+    layer: Int = 0, group: String? = null, fadeOutMode: AnimationFadeOutMode = AnimationFadeOutMode.SameLayerAndGroup
 ): KorgeDbArmatureDisplay? {
-	animation.fadeIn(animationName, fadeInTime, playTimes, layer, group, fadeOutMode)
-	return this
+    animation.fadeIn(animationName, fadeInTime, playTimes, layer, group, fadeOutMode)
+    return this
 }
 
 fun Rectangle.Companion.interpolated(a: Rectangle, b: Rectangle, ratio: Ratio): Rectangle = Rectangle.fromBounds(
