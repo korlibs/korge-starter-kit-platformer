@@ -17,7 +17,7 @@ import korlibs.time.*
 import kotlin.math.*
 
 suspend fun main() = Korge(
-    windowSize = Size(512, 512),
+    windowSize = Size(1280, 720),
     backgroundColor = Colors["#2b2b2b"],
     displayMode = KorgeDisplayMode(ScaleMode.SHOW_ALL, Anchor.TOP_LEFT, clipBorders = false),
 ) {
@@ -45,10 +45,10 @@ class MyScene : Scene() {
     var currentPlayerPos = Point(200, 200)
 
     @KeepOnReload
-    var initZoom = Size(32, 32)
+    var initZoom = 32f
 
     @KeepOnReload
-    var zoom = Size(256, 256)
+    var zoom = 256f
 
     override suspend fun SContainer.sceneMain() {
         val world = resourcesVfs["ldtk/Typical_2D_platformer_example.ldtk"].readLDTKWorldExt()
@@ -172,12 +172,16 @@ class MyScene : Scene() {
             }
         }
 
-        currentRect = Rectangle.getRectWithAnchorClamped(player.pos, initZoom, Anchor.CENTER, mapBounds)
+        fun createSize(zoom: Float): Size {
+            return Size(zoom * (width / height), zoom)
+        }
+
+        currentRect = Rectangle.getRectWithAnchorClamped(player.pos, createSize(initZoom), Anchor.CENTER, mapBounds)
 
         virtualController.down(GameButton.START) {
-            val zoomC = zoom.avgComponent()
+            val zoomC = zoom
             val zoomC2 = if (zoomC >= 1024f) 128f else zoomC * 2
-            zoom = Size(zoomC2, zoomC2)
+            zoom = zoomC2
         }
 
         val FREQ = 60.hz
@@ -210,7 +214,7 @@ class MyScene : Scene() {
 
             // Update camera
             run {
-                val newRect = Rectangle.getRectWithAnchorClamped(player.pos, zoom, Anchor.CENTER, mapBounds)
+                val newRect = Rectangle.getRectWithAnchorClamped(player.pos, createSize(zoom), Anchor.CENTER, mapBounds)
                 currentRect = (0.05 * 0.5).toRatio().interpolate(currentRect, newRect)
                 //camera.setTo(currentRect.rounded())
                 camera.setTo(currentRect)
