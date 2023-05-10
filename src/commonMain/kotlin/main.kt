@@ -5,10 +5,10 @@ import korlibs.io.file.std.*
 import korlibs.korge.*
 import korlibs.korge.dragonbones.*
 import korlibs.korge.input.*
-import korlibs.korge.ldtk.view.*
 import korlibs.korge.mascots.*
 import korlibs.korge.scene.*
 import korlibs.korge.view.*
+import korlibs.korge.view.property.*
 import korlibs.korge.virtualcontroller.*
 import korlibs.math.*
 import korlibs.math.geom.*
@@ -51,6 +51,17 @@ class MyScene : Scene() {
     @KeepOnReload
     var zoom = 256f
 
+    @ViewProperty
+    var gravity = Vector2(0, 10.0)
+
+    lateinit var player: KorgeDbArmatureDisplay
+
+    @ViewProperty
+    fun teleportInitialPos() {
+        currentPlayerPos = Point(200, 200)
+        player.pos = currentPlayerPos
+    }
+
     override suspend fun SContainer.sceneMain() {
         var immediateSetCamera = false
         onStageResized { width, height ->
@@ -65,7 +76,7 @@ class MyScene : Scene() {
         val db = KorgeDbFactory()
         db.loadKorgeMascots()
 
-        val player = db.buildArmatureDisplayGest()!!
+        player = db.buildArmatureDisplayGest()!!
             .xy(currentPlayerPos)
             .play(KorgeMascotsAnimations.IDLE)
             .scale(0.080)
@@ -101,7 +112,6 @@ class MyScene : Scene() {
             buttonRadius = buttonRadius
         ).also { it.container.alpha(0.5f) }
 
-        val gravity = Vector2(0, 10.0)
         var playerSpeed = Vector2(0, 0)
         val mapBounds = mapView.getLocalBounds()
 
