@@ -51,7 +51,7 @@ class MyScene : Scene() {
     var zoom = Size(256, 256)
 
     override suspend fun SContainer.sceneMain() {
-        val world = resourcesVfs["ldtk/Typical_2D_platformer_example.ldtk"].readLDTKWorld()
+        val world = resourcesVfs["ldtk/Typical_2D_platformer_example.ldtk"].readLDTKWorldExt()
         val collisions = world.createCollisionMaps()
         //val mapView = LDTKViewExt(world, showCollisions = true)
         val mapView = LDTKViewExt(world, showCollisions = false)

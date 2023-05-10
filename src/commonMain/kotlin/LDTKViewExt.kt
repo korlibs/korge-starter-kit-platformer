@@ -4,7 +4,10 @@ import korlibs.korge.view.*
 import korlibs.korge.view.tiles.*
 import korlibs.image.bitmap.*
 import korlibs.image.color.*
+import korlibs.image.format.*
 import korlibs.image.tiles.*
+import korlibs.io.file.*
+import korlibs.korge.ldtk.*
 import korlibs.korge.ldtk.view.*
 import korlibs.korge.view.filter.*
 import korlibs.math.geom.*
@@ -112,4 +115,31 @@ class LDTKViewExt(
             //}.xy(300, 300)
         }
     }
+}
+
+
+class ExtTileset(val def: TilesetDefinition, val tileset: TileSet?)
+
+class LDTKWorld(
+    val ldtk: LDTKJson,
+    val tilesetDefsById: Map<Int, ExtTileset>
+) {
+    val layersDefsById: Map<Int, LayerDefinition> = ldtk.defs.layers.associateBy { it.uid }
+}
+
+suspend fun VfsFile.readLDTKWorldExt(): LDTKWorld {
+    val file = this
+    val json = file.readString()
+    val ldtk = LDTKJson.load(json)
+    val tilesetDefsById: Map<Int, ExtTileset> = ldtk.defs.tilesets.associate { def ->
+        val bitmap = def.relPath?.let { file.parent[it].readBitmap() }
+        val tileSet = bitmap?.let { TileSet(bitmap.slice(), def.tileGridSize, def.tileGridSize).extrude(border = 2) }
+        def.uid to ExtTileset(def, tileSet)
+    }
+    return LDTKWorld(ldtk, tilesetDefsById)
+}
+
+fun TileSet.extrude(border: Int = 1, mipmaps: Boolean = false): TileSet {
+    val bitmaps = this.textures.map { (it as BmpSlice).extract().toBMP32() }
+    return TileSet.fromBitmaps(width, height, bitmaps, border, mipmaps = mipmaps)
 }
