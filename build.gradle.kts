@@ -5,7 +5,10 @@ plugins {
 }
 
 korge {
-	id = "com.sample.demo"
+	id = "korlibs.korge.starterkit.platformer"
+    name = "Korge Platformer"
+    title = name
+    icon = file("icon.png")
 
 // To enable all targets at once
 

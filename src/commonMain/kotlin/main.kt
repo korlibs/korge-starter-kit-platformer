@@ -17,6 +17,7 @@ import korlibs.time.*
 import kotlin.math.*
 
 suspend fun main() = Korge(
+    title = "Korge Platformer",
     //windowSize = Size(1280, 720),
     windowSize = Size(512, 512),
     backgroundColor = Colors["#2b2b2b"],
