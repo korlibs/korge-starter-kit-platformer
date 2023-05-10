@@ -12,6 +12,9 @@ import korlibs.korge.ldtk.view.*
 import korlibs.korge.view.filter.*
 import korlibs.math.geom.*
 
+//private val DO_EXTRUSION = false
+private val DO_EXTRUSION = true
+
 private fun IStackedIntArray2.getFirst(pos: PointInt): Int = getFirst(pos.x, pos.y)
 private fun IStackedIntArray2.getLast(pos: PointInt): Int = getLast(pos.x, pos.y)
 
@@ -96,13 +99,13 @@ class LDTKViewExt(
                             tileData.push(x, y, TileInfo(tileId, flipX = flipX, flipY = flipY, offsetX = dx, offsetY = dy).data)
                         }
                         if (tilesetExt.tileset != null) {
-                            tileMap(tileData, tilesetExt.tileset!!)
+                            tileMap(tileData, tilesetExt.tileset!!, smoothing = false)
                                 .alpha(layerDef.displayOpacity)
-                                .filters(IdentityFilter.Nearest)
+                                .also { if (!DO_EXTRUSION) it.filters(IdentityFilter.Nearest) }
                                 .also { it.overdrawTiles = 1 }
-                            tileMap(intGrid, intsTileSet)
+                            tileMap(intGrid, intsTileSet, smoothing = false)
                                 .visible(showCollisions)
-                                .filters(IdentityFilter.Nearest)
+                                .also { if (!DO_EXTRUSION) it.filters(IdentityFilter.Nearest) }
                                 .also { it.overdrawTiles = 1 }
                         }
                         //tileset!!.
@@ -132,8 +135,14 @@ suspend fun VfsFile.readLDTKWorldExt(): LDTKWorld {
     val json = file.readString()
     val ldtk = LDTKJson.load(json)
     val tilesetDefsById: Map<Int, ExtTileset> = ldtk.defs.tilesets.associate { def ->
-        val bitmap = def.relPath?.let { file.parent[it].readBitmap().toBMP32() }
-        val tileSet = bitmap?.let { TileSet(bitmap.slice(), def.tileGridSize, def.tileGridSize).extrude(border = 2) }
+        val bitmap = def.relPath?.let {
+            val bmp = file.parent[it].readBitmap()
+            if (DO_EXTRUSION) bmp.toBMP32() else bmp
+        }
+        val tileSet = bitmap?.let {
+            val tset = TileSet(bitmap.slice(), def.tileGridSize, def.tileGridSize)
+            if (DO_EXTRUSION) tset.extrude(border = 2) else tset
+        }
         def.uid to ExtTileset(def, tileSet)
     }
     return LDTKWorld(ldtk, tilesetDefsById)
