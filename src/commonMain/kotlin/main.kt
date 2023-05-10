@@ -105,8 +105,6 @@ class MyScene : Scene() {
         var playerSpeed = Vector2(0, 0)
         val mapBounds = mapView.getLocalBounds()
 
-        var currentRect = Rectangle(0, 0, 1024, 1024)
-
         fun tryMoveDelta(delta: Point): Boolean {
             val newPos = player.pos + delta
 
@@ -184,7 +182,7 @@ class MyScene : Scene() {
             return Size(zoom * (width / height), zoom)
         }
 
-        currentRect = Rectangle.getRectWithAnchorClamped(player.pos, createSize(initZoom), Anchor.CENTER, mapBounds)
+        var currentRect = Rectangle.getRectWithAnchorClamped(player.pos, createSize(initZoom), Anchor.CENTER, mapBounds)
 
         virtualController.down(GameButton.START) {
             val zoomC = zoom
