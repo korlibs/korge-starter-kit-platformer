@@ -25,9 +25,8 @@ suspend fun main() = Korge(
 ) {
     val sceneContainer = sceneContainer()
 
-
-
     sceneContainer.changeTo({ MyScene() })
+    //sceneContainer.changeTo({ RaycastingExampleScene() })
 }
 
 object COLLISIONS {
