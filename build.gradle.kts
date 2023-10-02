@@ -21,7 +21,6 @@ korge {
 	
 	targetJvm()
 	targetJs()
-	targetDesktop()
 	targetIos()
 	targetAndroid()
 
