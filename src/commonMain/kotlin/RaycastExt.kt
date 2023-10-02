@@ -5,18 +5,18 @@ import kotlin.math.*
 // @TODO: Move to KorGE and add companion to Ray, so this can be an static method
 fun RayFromTwoPoints(start: Point, end: Point): Ray = Ray(start, Angle.between(start, end))
 
-private fun sq(f: Float): Float = f * f
+private fun sq(f: Double): Double = f * f
 
 // https://www.youtube.com/watch?v=NbSee-XM7WA
 fun Ray.firstCollisionInTileMap(
-    cellSize: Size = Size(1f, 1f),
+    cellSize: Size = Size(1.0, 1.0),
     maxTiles: Int = 10,
     collides: (tilePos: PointInt) -> Boolean
 ): Point? {
     val ray = this
     val vRayStart = this.point / cellSize
     val vRayDir = ray.direction.normalized
-    val vRayUnitStepSize = Vector2(
+    val vRayUnitStepSize = Vector2D(
         sqrt(1f + sq(vRayDir.y / vRayDir.x)),
         sqrt(1f + sq(vRayDir.x / vRayDir.y)),
     )
@@ -25,8 +25,8 @@ fun Ray.firstCollisionInTileMap(
     var vMapChecky = vRayStart.y.toInt()
     var vStepx = 0
     var vStepy = 0
-    var vRayLength1Dx = 0f
-    var vRayLength1Dy = 0f
+    var vRayLength1Dx = 0.0
+    var vRayLength1Dy = 0.0
     if (vRayDir.x < 0) {
         vStepx = -1
         vRayLength1Dx = (vRayStart.x - (vMapCheckx)) * vRayUnitStepSize.x
@@ -45,8 +45,8 @@ fun Ray.firstCollisionInTileMap(
 
     // Perform "Walk" until collision or range check
     var bTileFound = false
-    val fMaxDistance = hypot(cellSize.width.toFloat(), cellSize.height.toFloat()) * maxTiles
-    var fDistance = 0.0f
+    val fMaxDistance = hypot(cellSize.width, cellSize.height) * maxTiles
+    var fDistance = 0.0
     while (fDistance < fMaxDistance) {
         // Walk along shortest path
         if (vRayLength1Dx < vRayLength1Dy) {
@@ -76,7 +76,7 @@ fun Ray.firstCollisionInTileMap(
 
 fun IStackedIntArray2.raycast(
     ray: Ray,
-    cellSize: Size = Size(1f, 1f),
+    cellSize: Size = Size(1, 1),
     maxTiles: Int = 10,
     collides: IStackedIntArray2.(tilePos: PointInt) -> Boolean
 ): Point? {

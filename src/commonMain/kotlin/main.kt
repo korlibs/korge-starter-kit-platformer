@@ -25,7 +25,7 @@ suspend fun main() = Korge(
 ) {
     val sceneContainer = sceneContainer()
 
-    sceneContainer.changeTo({ MyScene() })
+    sceneContainer.changeTo { MyScene() }
     //sceneContainer.changeTo({ RaycastingExampleScene() })
 }
 
@@ -36,7 +36,7 @@ object COLLISIONS {
     val LADDER = 2
     val STONE = 3
 
-    fun isSolid(type: Int, direction: Vector2): Boolean {
+    fun isSolid(type: Int, direction: Vector2D): Boolean {
         return type == DIRT || type == STONE || type == OUTSIDE
     }
 }
@@ -46,13 +46,13 @@ class MyScene : Scene() {
     var currentPlayerPos = Point(200, 200)
 
     @KeepOnReload
-    var initZoom = 32f
+    var initZoom = 32.0
 
     @KeepOnReload
-    var zoom = 256f
+    var zoom = 256.0
 
     @ViewProperty
-    var gravity = Vector2(0, 10.0)
+    var gravity = Vector2D(0, 10)
 
     lateinit var player: KorgeDbArmatureDisplay
 
@@ -107,7 +107,7 @@ class MyScene : Scene() {
             buttonRadius = buttonRadius
         ).also { it.container.alpha(0.5f) }
 
-        var playerSpeed = Vector2(0, 0)
+        var playerSpeed = Vector2D(0, 0)
         val mapBounds = mapView.getLocalBounds()
 
         fun tryMoveDelta(delta: Point): Boolean {
@@ -154,10 +154,10 @@ class MyScene : Scene() {
             if (!up) {
                 player.scaleX = player.scaleX.absoluteValue * if (right) +1f else -1f
                 tryMoveDelta(Point(2.0, 0) * (if (right) +1 else -1) * scale)
-                player.speed = 2f * scale
+                player.speed = 2.0 * scale
                 moving = true
             } else {
-                player.speed = 1f
+                player.speed = 1.0
                 moving = false
             }
             updateState()
@@ -173,7 +173,7 @@ class MyScene : Scene() {
                         jumping = true
                         updateState()
                     }
-                    playerSpeed += Vector2(0, -5.5)
+                    playerSpeed += Vector2D(0, -5.5)
                 }
             }
             changed(GameButton.LX) {
@@ -183,7 +183,7 @@ class MyScene : Scene() {
             }
         }
 
-        fun createSize(zoom: Float): Size {
+        fun createSize(zoom: Double): Size {
             return Size(zoom * (width / height), zoom)
         }
 
@@ -191,7 +191,7 @@ class MyScene : Scene() {
 
         virtualController.down(GameButton.START) {
             val zoomC = zoom
-            val zoomC2 = if (zoomC >= 1024f) 128f else zoomC * 2
+            val zoomC2 = if (zoomC >= 1024.0) 128.0 else zoomC * 2
             zoom = zoomC2
         }
 
@@ -214,7 +214,7 @@ class MyScene : Scene() {
             run {
                 playerSpeed += gravity * FREQ.timeSpan.seconds
                 if (!tryMoveDelta(playerSpeed)) {
-                    playerSpeed = Vector2.ZERO
+                    playerSpeed = Vector2D.ZERO
                     if (jumping) {
                         jumping = false
                         updateState()
