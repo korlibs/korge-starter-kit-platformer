@@ -6,6 +6,7 @@ import korlibs.korge.dragonbones.*
 import korlibs.korge.mascots.*
 import korlibs.korge.scene.*
 import korlibs.korge.view.*
+import korlibs.korge.view.align.*
 import korlibs.korge.view.property.*
 import korlibs.korge.virtualcontroller.*
 import korlibs.math.*
@@ -66,6 +67,7 @@ class MyScene : Scene() {
             size = Size(views.actualVirtualWidth, views.actualVirtualHeight)
             immediateSetCamera = true
         }
+        val loadingText = text("Loading...").centerOnStage()
         val world = resourcesVfs["ldtk/Typical_2D_platformer_example.ldtk"].readLDTKWorldExt()
         val collisions = world.createCollisionMaps()
         //val mapView = LDTKViewExt(world, showCollisions = true)
@@ -233,5 +235,7 @@ class MyScene : Scene() {
                 initZoom = zoom
             }
         }
+
+        loadingText.removeFromParent()
     }
 }
