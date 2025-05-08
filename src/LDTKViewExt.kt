@@ -45,6 +45,7 @@ fun LDTKWorld.createCollisionMaps(layerId: String = "Collisions"): LDTKCollision
     return LDTKCollisions(this, world)
 }
 
+// LDTKLayerView
 class LDTKViewExt(
     val world: LDTKWorld,
     val showCollisions: Boolean = false
@@ -75,9 +76,9 @@ class LDTKViewExt(
                         //for (layer in (level.layerInstances ?: emptyList())) {
                         val layerDef = layersDefsById[layer.layerDefUid] ?: continue
                         val tilesetExt = tilesetDefsById[layer.tilesetDefUid] ?: continue
-                        val intGrid = IntArray2(layer.cWid, layer.cHei, layer.intGridCSV.copyOf(layer.cWid * layer.cHei))
-                        val tileData = StackedIntArray2(layer.cWid, layer.cHei, -1)
+                        //val intGrid = IntArray2(layer.cWid, layer.cHei, layer.intGridCSV.copyOf(layer.cWid * layer.cHei))
                         val tileset = tilesetExt.def
+                        val tileData = TileMapData(layer.cWid, layer.cHei)
                         val gridSize = tileset.tileGridSize
 
                         //val fsprites = FSprites(layer.autoLayerTiles.size)
@@ -96,17 +97,19 @@ class LDTKViewExt(
                             val tileId = ty * cellsTilesPerRow + tx
                             val flipX = tile.f.hasBitSet(0)
                             val flipY = tile.f.hasBitSet(1)
-                            tileData.push(x, y, TileInfo(tileId, flipX = flipX, flipY = flipY, offsetX = dx, offsetY = dy).data)
+                            tileData.push(x, y, Tile(tileId, flipX = flipX, flipY = flipY, offsetX = dx, offsetY = dy))
                         }
                         if (tilesetExt.tileset != null) {
-                            tileMap(tileData, tilesetExt.tileset!!, smoothing = false)
+                            tileMap(tileData, smoothing = false)
+                                .also { it.tileset = tilesetExt.tileset!! }
                                 .alpha(layerDef.displayOpacity)
                                 .also { if (!DO_EXTRUSION) it.filters(IdentityFilter.Nearest) }
                                 .also { it.overdrawTiles = 1 }
-                            tileMap(intGrid, intsTileSet, smoothing = false)
-                                .visible(showCollisions)
-                                .also { if (!DO_EXTRUSION) it.filters(IdentityFilter.Nearest) }
-                                .also { it.overdrawTiles = 1 }
+                            //tileMap(TileSet(intGrid), smoothing = false)
+                            //    .visible(showCollisions)
+                            //    .also { it.tileset = tilesetExt.tileset!! }
+                            //    .also { if (!DO_EXTRUSION) it.filters(IdentityFilter.Nearest) }
+                            //    .also { it.overdrawTiles = 1 }
                         }
                         //tileset!!.
                         //println(intGrid)
