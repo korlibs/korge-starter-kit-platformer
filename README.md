@@ -7,4 +7,3 @@ Shows how to use DragonBones, the Korge Mascots kproject & LDtk maps
 ```
 
 ![](./screenshots/screenshot.png)
-

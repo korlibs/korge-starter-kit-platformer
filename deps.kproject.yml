@@ -1,4 +1,4 @@
 dependencies:
 - https://github.com/korlibs/korge-virtualcontroller/tree/v1.0.0/korge-virtualcontroller##644e328f2b99484d650521ab96c49d15cc46d8c3
-- https://github.com/korlibs/korge-ldtk/tree/v1.0.0/korge-ldtk##907faf6e945a5027ed85817b6fd1f0ef99e63fb9
+- https://github.com/korlibs/korge-ldtk/tree/v1.0.3/korge-ldtk##d72694fd802ae06fbe03c96dfa448d55b1287d9f
 - https://github.com/korlibs/mascots.korge.org/tree/v1.0.0/korge-mascots##dd8f5d14fa7b637dfdcfd2fc76d3cbf612f7b72e
