@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 21
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v4
         with:
           java-version: 21
 
@@ -42,11 +42,11 @@ jobs:
           ./gradlew jsBrowserProductionWebpack
 
       - name: Setup Pages
-        uses: actions/configure-pages@v3
+        uses: actions/configure-pages@v5
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v3
         with:
           path: build/dist/js/productionExecutable
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
