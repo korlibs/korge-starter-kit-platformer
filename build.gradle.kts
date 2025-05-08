@@ -33,3 +33,20 @@ dependencies {
     //add("commonMainApi", project(":korge-dragonbones"))
 }
 
+// @TODO: HACK won't be required after 6.0.0-beta5
+tasks {
+    val browserEsbuildResources by getting(Copy::class)
+    val browserReleaseWebpack by getting(Copy::class)
+
+    fun CopySpec.registerModulesResources(project: Project) {
+        project.afterEvaluate {
+            for (file in (project.rootDir.resolve("modules").listFiles()?.toList() ?: emptyList())) {
+                from(File(file, "resources"))
+                from(File(file, "src/commonMain/resources"))
+            }
+        }
+    }
+
+    browserEsbuildResources.registerModulesResources(project)
+    browserReleaseWebpack.registerModulesResources(project)
+}
